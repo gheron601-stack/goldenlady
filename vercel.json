@@ -1,0 +1,8 @@
+{
+  "buildCommand": "npm install --prefix client && npm install --prefix admin && npm run build --prefix client && npm run build --prefix admin && node build-merge.js",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/admin/:path*", "destination": "/admin/index.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
