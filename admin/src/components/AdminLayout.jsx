@@ -61,7 +61,7 @@ export default function AdminLayout({ children, title }) {
 
           <div className="nav-section-label" style={{marginTop:16}}>Store</div>
           <a
-            href="https://goldenlady.vercel.app"
+            href="https://goldenlady-client.vercel.app"
             target="_blank"
             rel="noopener noreferrer"
             className="sidebar-link"
