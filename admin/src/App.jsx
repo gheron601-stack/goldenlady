@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext, useContext } from 'react'
-import { BrowserRouter, Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom'
-import { api, getToken, setToken, clearToken } from './api'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { supabase } from './supabase'
+import { api } from './api'
 import LoginPage from './pages/LoginPage'
 import DashboardPage from './pages/DashboardPage'
 import ProductsPage from './pages/ProductsPage'
@@ -14,24 +15,27 @@ function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    if (getToken()) {
-      api.me()
-        .then(d => setUser(d.user))
-        .catch(() => clearToken())
-        .finally(() => setLoading(false))
-    } else {
+    // Get current session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null)
       setLoading(false)
-    }
+    })
+
+    // Listen for login/logout changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
   const login = async (email, password) => {
     const data = await api.login(email, password)
-    setToken(data.token)
     setUser(data.user)
   }
 
-  const logout = () => {
-    clearToken()
+  const logout = async () => {
+    await api.logout()
     setUser(null)
   }
 
@@ -54,7 +58,7 @@ function ProtectedRoute({ children }) {
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/admin">
       <AuthProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
