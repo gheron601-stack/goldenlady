@@ -19,18 +19,40 @@ function Toast({ msg, onDone }) {
 
 function ProductModal({ product, onClose, onSave }) {
   const [form, setForm] = useState(product ? { ...product, price: String(product.price) } : EMPTY_FORM)
-  const [imageFile, setImageFile] = useState(null)
-  const [preview, setPreview] = useState(product?.image ? getImageUrl(product.image) : null)
+  // Up to 3 image slots
+  const [imageFiles, setImageFiles] = useState([null, null, null])
+  const [previews, setPreviews] = useState(() => {
+    const imgs = product?.images?.length ? product.images : (product?.image ? [product.image] : [])
+    return [
+      imgs[0] ? getImageUrl(imgs[0]) : null,
+      imgs[1] ? getImageUrl(imgs[1]) : null,
+      imgs[2] ? getImageUrl(imgs[2]) : null,
+    ]
+  })
   const [saving, setSaving] = useState(false)
-  const fileRef = useRef()
+  const fileRefs = [useRef(), useRef(), useRef()]
 
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
-  const handleImage = (e) => {
+  const handleImage = (index, e) => {
     const file = e.target.files[0]
     if (!file) return
-    setImageFile(file)
-    setPreview(URL.createObjectURL(file))
+    const newFiles = [...imageFiles]
+    newFiles[index] = file
+    setImageFiles(newFiles)
+    const newPreviews = [...previews]
+    newPreviews[index] = URL.createObjectURL(file)
+    setPreviews(newPreviews)
+  }
+
+  const removeImage = (index, e) => {
+    e.stopPropagation()
+    const newFiles = [...imageFiles]
+    newFiles[index] = null
+    setImageFiles(newFiles)
+    const newPreviews = [...previews]
+    newPreviews[index] = null
+    setPreviews(newPreviews)
   }
 
   const handleSubmit = async (e) => {
@@ -39,11 +61,12 @@ function ProductModal({ product, onClose, onSave }) {
     try {
       const fd = new FormData()
       Object.entries(form).forEach(([k, v]) => fd.append(k, v))
-      if (imageFile) fd.append('image', imageFile)
+      // Existing image paths (for update)
+      const existingImages = product?.images?.length ? product.images : (product?.image ? [product.image] : [])
       if (product) {
-        await api.updateProduct(product.id, fd)
+        await api.updateProduct(product.id, fd, imageFiles, existingImages)
       } else {
-        await api.createProduct(fd)
+        await api.createProduct(fd, imageFiles)
       }
       onSave()
     } catch (err) {
@@ -53,11 +76,12 @@ function ProductModal({ product, onClose, onSave }) {
     }
   }
 
-  // Update subcategory when category changes
   const handleCategoryChange = (v) => {
     set('category', v)
     set('subcategory', CATEGORIES[v][0])
   }
+
+  const slotLabels = ['Image 1 (Main) *', 'Image 2 (optional)', 'Image 3 (optional)']
 
   return (
     <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -114,22 +138,37 @@ function ProductModal({ product, onClose, onSave }) {
               <textarea value={form.description} onChange={e => set('description', e.target.value)} placeholder="Brief product description..." rows={3} />
             </div>
 
+            {/* 3 Image Upload Slots */}
             <div className="form-field full">
-              <label>Product Image</label>
-              <div className="img-upload" onClick={() => fileRef.current.click()}>
-                <input ref={fileRef} type="file" accept="image/*" onChange={handleImage} />
-                {preview ? (
-                  <>
-                    <img src={preview} alt="preview" className="img-preview" />
-                    <div style={{fontSize:'0.72rem',color:'var(--text-muted)'}}>Click to change image</div>
-                  </>
-                ) : (
-                  <div>
-                    <div style={{fontSize:'2rem',marginBottom:8,opacity:0.4}}>📷</div>
-                    <div style={{fontSize:'0.8rem',color:'var(--text-muted)'}}>Click to upload product image</div>
-                    <div style={{fontSize:'0.68rem',color:'var(--text-muted)',marginTop:4}}>JPG, PNG, WebP — max 10MB</div>
+              <label>Product Images (up to 3)</label>
+              <div style={{display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12}}>
+                {[0,1,2].map(i => (
+                  <div key={i}>
+                    <div style={{fontSize:'0.68rem',color:'var(--text-muted)',marginBottom:6,textAlign:'center'}}>{slotLabels[i]}</div>
+                    <div
+                      className="img-upload"
+                      onClick={() => fileRefs[i].current.click()}
+                      style={{position:'relative', minHeight: 100}}
+                    >
+                      <input ref={fileRefs[i]} type="file" accept="image/*" onChange={e => handleImage(i, e)} />
+                      {previews[i] ? (
+                        <>
+                          <img src={previews[i]} alt={`preview ${i+1}`} className="img-preview" style={{height:90}} />
+                          <button
+                            type="button"
+                            onClick={e => removeImage(i, e)}
+                            style={{position:'absolute',top:4,right:4,background:'rgba(0,0,0,0.6)',border:'none',color:'#fff',borderRadius:'50%',width:20,height:20,cursor:'pointer',fontSize:10,display:'flex',alignItems:'center',justifyContent:'center'}}
+                          >✕</button>
+                        </>
+                      ) : (
+                        <div>
+                          <div style={{fontSize:'1.5rem',marginBottom:4,opacity:0.4}}>📷</div>
+                          <div style={{fontSize:'0.68rem',color:'var(--text-muted)'}}>Click to upload</div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
+                ))}
               </div>
             </div>
           </div>

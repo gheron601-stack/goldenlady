@@ -1,5 +1,14 @@
 import { supabase } from './supabase'
 
+// Helper: upload one image file, return path
+async function uploadImage(file) {
+  if (!file || !file.name) return null
+  const fileName = Date.now() + '_' + Math.random().toString(36).slice(2) + '_' + file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
+  const { data, error } = await supabase.storage.from('products').upload(fileName, file)
+  if (error) throw error
+  return data.path
+}
+
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 export const api = {
   login: async (email, password) => {
@@ -28,14 +37,14 @@ export const api = {
     return data
   },
 
-  createProduct: async (formData) => {
-    let imagePath = null
-    const imageFile = formData.get('image')
-    if (imageFile && imageFile.name) {
-      const fileName = Date.now() + '_' + imageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')
-      const { data, error } = await supabase.storage.from('products').upload(fileName, imageFile)
-      if (error) throw error
-      imagePath = data.path
+  createProduct: async (formData, imageFiles = []) => {
+    // Upload up to 3 images
+    const paths = []
+    for (const file of imageFiles) {
+      if (file) {
+        const path = await uploadImage(file)
+        if (path) paths.push(path)
+      }
     }
 
     const payload = {
@@ -45,7 +54,8 @@ export const api = {
       price: Number(formData.get('price')),
       description: formData.get('description'),
       featured: formData.get('featured') === 'true',
-      image: imagePath
+      image: paths[0] || null,
+      images: paths
     }
 
     const { data, error } = await supabase.from('products').insert([payload]).select()
@@ -53,16 +63,21 @@ export const api = {
     return data[0]
   },
 
-  updateProduct: async (id, formData) => {
-    let imagePath = formData.get('image')
-    if (imagePath instanceof File && imagePath.name) {
-      const fileName = Date.now() + '_' + imagePath.name.replace(/[^a-zA-Z0-9.-]/g, '_')
-      const { data, error } = await supabase.storage.from('products').upload(fileName, imagePath)
-      if (error) throw error
-      imagePath = data.path
-    } else if (!imagePath || imagePath === 'null') {
-      imagePath = null
+  updateProduct: async (id, formData, imageFiles = [], existingImages = []) => {
+    // Start with existing images
+    const paths = [...existingImages]
+
+    // Upload new files (only where a new file was provided)
+    for (let i = 0; i < imageFiles.length; i++) {
+      const file = imageFiles[i]
+      if (file && file.name) {
+        const path = await uploadImage(file)
+        if (path) paths[i] = path
+      }
     }
+
+    // Remove nulls/undefined
+    const cleanPaths = paths.filter(Boolean)
 
     const payload = {
       name: formData.get('name'),
@@ -71,8 +86,9 @@ export const api = {
       price: Number(formData.get('price')),
       description: formData.get('description'),
       featured: formData.get('featured') === 'true',
+      image: cleanPaths[0] || null,
+      images: cleanPaths
     }
-    if (formData.has('image') && imagePath !== 'null') payload.image = imagePath
 
     const { data, error } = await supabase.from('products').update(payload).eq('id', id).select()
     if (error) throw error
