@@ -3,8 +3,8 @@ import AdminLayout from '../components/AdminLayout'
 import { api, getImageUrl } from '../api'
 
 const CATEGORIES = {
-  jewelry: ['necklaces', 'rings', 'earrings', 'pendants'],
-  accessories: ['pins', 'rings'],
+  jewelry: ['necklaces', 'rings', 'earrings', 'pendants', 'bracelets'],
+  accessories: ['bracelets', 'pins', 'rings', 'other'],
 }
 
 const EMPTY_FORM = {
@@ -222,6 +222,10 @@ export default function ProductsPage() {
     }
   }
 
+  const availableSubcategories = filter.category
+    ? (CATEGORIES[filter.category] || [])
+    : Array.from(new Set(Object.values(CATEGORIES).flat()))
+
   return (
     <AdminLayout title="Products">
       {toast && <Toast msg={toast} onDone={() => setToast('')} />}
@@ -233,34 +237,72 @@ export default function ProductsPage() {
         />
       )}
 
-      {/* Header */}
-      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:24,gap:16,flexWrap:'wrap'}}>
-        <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
-          <select
-            value={filter.category}
-            onChange={e => setFilter({category:e.target.value,subcategory:''})}
-            style={{width:'auto',padding:'8px 12px'}}
-          >
-            <option value="">All Categories</option>
-            <option value="jewelry">Jewelry</option>
-            <option value="accessories">Accessories</option>
-          </select>
-          {filter.category && (
+      {/* Header & Subcategory Filters */}
+      <div style={{marginBottom:24}}>
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',gap:16,flexWrap:'wrap',marginBottom:14}}>
+          <div style={{display:'flex',gap:12,flexWrap:'wrap',alignItems:'center'}}>
+            <select
+              value={filter.category}
+              onChange={e => setFilter({category:e.target.value,subcategory:''})}
+              style={{width:'auto',padding:'8px 14px',borderRadius:8,fontSize:'0.82rem'}}
+            >
+              <option value="">All Categories</option>
+              <option value="jewelry">Jewelry</option>
+              <option value="accessories">Accessories</option>
+            </select>
+
             <select
               value={filter.subcategory}
               onChange={e => setFilter(f=>({...f,subcategory:e.target.value}))}
-              style={{width:'auto',padding:'8px 12px'}}
+              style={{width:'auto',padding:'8px 14px',borderRadius:8,fontSize:'0.82rem'}}
             >
               <option value="">All Subcategories</option>
-              {CATEGORIES[filter.category]?.map(s => (
+              {availableSubcategories.map(s => (
                 <option key={s} value={s}>{s.charAt(0).toUpperCase()+s.slice(1)}</option>
               ))}
             </select>
-          )}
+
+            {(filter.category || filter.subcategory) && (
+              <button
+                className="btn btn-ghost btn-sm"
+                onClick={() => setFilter({category:'',subcategory:''})}
+                style={{color:'var(--gold)',fontSize:'0.75rem'}}
+              >
+                ✕ Reset Filters
+              </button>
+            )}
+          </div>
+
+          <button className="btn btn-gold" onClick={() => setModal('add')}>
+            + Add Product
+          </button>
         </div>
-        <button className="btn btn-gold" onClick={() => setModal('add')}>
-          + Add Product
-        </button>
+
+        {/* Quick Subcategory Pills for Instant Separation */}
+        <div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}>
+          <span style={{fontSize:'0.72rem',color:'var(--text-muted)',textTransform:'uppercase',letterSpacing:'0.08em',marginRight:4}}>
+            Subcategory:
+          </span>
+          <button
+            type="button"
+            className={`btn btn-sm ${!filter.subcategory ? 'btn-gold' : 'btn-ghost'}`}
+            style={{padding:'4px 12px',fontSize:'0.75rem',height:'auto'}}
+            onClick={() => setFilter(f => ({ ...f, subcategory: '' }))}
+          >
+            All
+          </button>
+          {availableSubcategories.map(s => (
+            <button
+              key={s}
+              type="button"
+              className={`btn btn-sm ${filter.subcategory === s ? 'btn-gold' : 'btn-ghost'}`}
+              style={{padding:'4px 12px',fontSize:'0.75rem',height:'auto',textTransform:'capitalize'}}
+              onClick={() => setFilter(f => ({ ...f, subcategory: f.subcategory === s ? '' : s }))}
+            >
+              {s}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Table */}
@@ -271,7 +313,7 @@ export default function ProductsPage() {
               <tr>
                 <th>Image</th>
                 <th>Name</th>
-                <th>Category</th>
+                <th>Category / Subcategory</th>
                 <th>Price</th>
                 <th>Status</th>
                 <th>Actions</th>
@@ -282,7 +324,7 @@ export default function ProductsPage() {
                 <tr><td colSpan={6} style={{textAlign:'center',padding:'40px',color:'var(--text-muted)'}}>Loading…</td></tr>
               ) : products.length === 0 ? (
                 <tr><td colSpan={6} style={{textAlign:'center',padding:'40px',color:'var(--text-muted)'}}>
-                  No products found.
+                  No products found in this subcategory.
                   <button className="btn btn-gold btn-sm" onClick={() => setModal('add')} style={{marginLeft:12}}>Add one</button>
                 </td></tr>
               ) : products.map(p => (
@@ -295,8 +337,15 @@ export default function ProductsPage() {
                     )}
                   </td>
                   <td style={{fontWeight:500,maxWidth:200}}>{p.name}</td>
-                  <td style={{textTransform:'capitalize',color:'var(--text-muted)',fontSize:'0.75rem'}}>
-                    {p.category}<br />{p.subcategory}
+                  <td>
+                    <div style={{display:'flex',flexDirection:'column',gap:4}}>
+                      <span style={{fontWeight:600,color:'var(--gold)',fontSize:'0.82rem',textTransform:'capitalize'}}>
+                        {p.category}
+                      </span>
+                      <span style={{fontSize:'0.72rem',background:'rgba(255,255,255,0.06)',border:'1px solid rgba(255,255,255,0.08)',padding:'2px 8px',borderRadius:4,color:'var(--text-muted)',width:'fit-content',textTransform:'capitalize'}}>
+                        {p.subcategory || 'General'}
+                      </span>
+                    </div>
                   </td>
                   <td>₱{Number(p.price).toLocaleString()}</td>
                   <td>

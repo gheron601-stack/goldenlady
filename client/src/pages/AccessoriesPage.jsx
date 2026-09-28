@@ -3,23 +3,11 @@ import { useParams, useNavigate } from 'react-router-dom'
 import ProductCard from '../components/ProductCard'
 import { fetchProducts } from '../utils/api'
 
-const ACCESSORIES_CATALOG = [
-  /* Bracelets */
-  { id: 'br-s1', category: 'accessories', subcategory: 'bracelets', name: 'Silver Bracelet — 999', price: 2200, description: '999 fine silver bracelet — pure elegance for every occasion.', image: null, localImg: '/catalog/Bracelet__silver_0.png' },
-  { id: 'br-s2', category: 'accessories', subcategory: 'bracelets', name: 'Silver Bracelet II', price: 2400, description: 'Fine silver link bracelet — delicate craftsmanship, everyday wear.', image: null, localImg: '/catalog/Bracelet__silver_1.png' },
-  { id: 'br-s3', category: 'accessories', subcategory: 'bracelets', name: 'Anchor Chain Bracelet', price: 2600, description: 'Nautical-inspired anchor chain — bold, refined statement piece.', image: null, localImg: '/catalog/Bracelet__silver_2.png' },
-  { id: 'br-s4', category: 'accessories', subcategory: 'bracelets', name: 'Tennis Bracelet', price: 4500, description: 'Classic tennis bracelet with brilliant stones — timeless sophistication.', image: null, localImg: '/catalog/Bracelet__silver_3.png' },
-  /* Pins */
-  { id: 'pin-1', category: 'accessories', subcategory: 'pins', name: 'Decorative Pin I', price: 650, description: 'Handcrafted decorative pin — an elegant finishing touch.', image: null, localImg: '/catalog/Pins_0.png' },
-  { id: 'pin-2', category: 'accessories', subcategory: 'pins', name: 'Decorative Pin II', price: 680, description: 'Fine detailing in a compact pin — understated and refined.', image: null, localImg: '/catalog/Pins_1.png' },
-  { id: 'pin-3', category: 'accessories', subcategory: 'pins', name: 'Decorative Pin III', price: 700, description: 'A classic pin design with artisan gold-toned finish.', image: null, localImg: '/catalog/Pins_2.png' },
-  { id: 'pin-4', category: 'accessories', subcategory: 'pins', name: 'Decorative Pin IV', price: 720, description: 'Precision pin craft — beautiful as a gift or personal accessory.', image: null, localImg: '/catalog/Pins_3.png' },
-]
-
 const SUBS = [
   { key: 'all',        label: 'All Accessories' },
   { key: 'bracelets',  label: 'Bracelets' },
   { key: 'pins',       label: 'Pins' },
+  { key: 'other',      label: 'Other' },
 ]
 
 export default function AccessoriesPage() {
@@ -38,12 +26,7 @@ export default function AccessoriesPage() {
       .catch(() => { setProducts([]); setLoading(false) })
   }, [active])
 
-  const localItems = ACCESSORIES_CATALOG.filter(
-    i => active === 'all' || i.subcategory === active
-  )
-  const displayItems = products.length > 0
-    ? products
-    : localItems.map(i => ({ ...i, image: i.localImg }))
+  const displayItems = products
 
   return (
     <>

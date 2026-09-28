@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { fetchProducts, ORDER_FORM_URL } from '../utils/api'
+import { fetchProducts } from '../utils/api'
+import ProductCard from '../components/ProductCard'
 
 /* ── Gem divider helper ── */
 const GemDivider = ({ size = '' }) => (
@@ -64,49 +65,6 @@ function useParallax(speed = 0.3) {
 /* ── Marquee content (repeated 10×) ── */
 const MARQUEE_ITEM = 'Fine Jewelry ◆ Custom Orders ◆ Ring Restoration ◆ Handcrafted ◆ Accessories'
 
-/* ── Static catalog items from extracted PDF images ── */
-const CATALOG_ITEMS = [
-  {
-    id: 'nk-gold-1', category: 'Necklace', name: '14k Gold Necklace', price: 4500,
-    desc: 'Handcrafted 14k gold chain, 45cm — a timeless everyday essential.',
-    img: '/catalog/Necklace__Gold_0.png',
-  },
-  {
-    id: 'nk-gold-2', category: 'Necklace', name: '18k Gold Necklace', price: 6800,
-    desc: '18k yellow gold necklace, 16 inches — lustrous and heirloom-quality.',
-    img: '/catalog/Necklace__Gold_1.png',
-  },
-  {
-    id: 'nk-silver-1', category: 'Necklace', name: '925 Silver Necklace', price: 1800,
-    desc: 'Sterling 925 silver chain — elegant, lightweight, everyday luxury.',
-    img: '/catalog/Necklace__Silver_0.png',
-  },
-  {
-    id: 'pd-wg-1', category: 'Pendant', name: '14k White Gold Pendant', price: 5200,
-    desc: 'Fine 14k white gold pendant — intricate craftsmanship, striking elegance.',
-    img: '/catalog/Pendants__White_gold_0.png',
-  },
-  {
-    id: 'pd-yg-1', category: 'Pendant', name: '18k Yellow Gold Pendant', price: 7500,
-    desc: '18k yellow gold pendant — radiant warmth and artisan detail.',
-    img: '/catalog/Pendants__Yellow_gold_0.png',
-  },
-  {
-    id: 'rg-silver-1', category: 'Ring', name: '925 Silver Ring', price: 1500,
-    desc: 'Sterling silver CZ ring — brilliant sparkle at an accessible price.',
-    img: '/catalog/Rings__Silver_0.png',
-  },
-  {
-    id: 'rg-wed-1', category: 'Ring', name: 'Wedding Band', price: 12000,
-    desc: 'Handcrafted wedding band — a symbol of eternal love and commitment.',
-    img: '/catalog/Rings__Wedding_ring_0.png',
-  },
-  {
-    id: 'br-silver-1', category: 'Bracelet', name: 'Silver Bracelet', price: 2200,
-    desc: '999 fine silver bracelet — pure elegance for every occasion.',
-    img: '/catalog/Bracelet__silver_0.png',
-  },
-]
 
 /* ── Service cards ── */
 const SERVICES = [
@@ -166,25 +124,37 @@ const TESTIMONIALS = [
 
 export default function HomePage() {
   const [featured, setFeatured] = useState([])
+  const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('all')
 
   useEffect(() => {
-    fetchProducts({ featured: 'true' })
-      .then(data => setFeatured(data))
+    setLoading(true)
+    fetchProducts({ featured: true })
+      .then(data => {
+        if (data && data.length > 0) {
+          setFeatured(data)
+        } else {
+          fetchProducts().then(all => setFeatured(all ? all.slice(0, 8) : [])).catch(() => setFeatured([]))
+        }
+      })
       .catch(() => setFeatured([]))
+      .finally(() => setLoading(false))
   }, [])
 
   const tabs = [
-    { key: 'all',      label: 'All' },
-    { key: 'Necklace', label: 'Necklaces' },
-    { key: 'Ring',     label: 'Rings' },
-    { key: 'Pendant',  label: 'Pendants' },
-    { key: 'Bracelet', label: 'Bracelets' },
+    { key: 'all',       label: 'All' },
+    { key: 'necklaces', label: 'Necklaces' },
+    { key: 'rings',     label: 'Rings' },
+    { key: 'pendants',  label: 'Pendants' },
+    { key: 'bracelets', label: 'Bracelets' },
   ]
 
-  const displayItems = featured.length > 0
+  const displayItems = activeTab === 'all'
     ? featured
-    : CATALOG_ITEMS.filter(i => activeTab === 'all' || i.category === activeTab)
+    : featured.filter(i =>
+        (i.subcategory || '').toLowerCase() === activeTab.toLowerCase() ||
+        (i.category || '').toLowerCase() === activeTab.toLowerCase()
+      )
 
   return (
     <>
@@ -299,11 +269,30 @@ export default function HomePage() {
           </div>
 
           {/* Product Grid */}
-          <div className="products-grid">
-            {displayItems.map((item, idx) => (
-              <ProductCardLocal key={item.id || idx} item={item} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="products-grid">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="product-card">
+                  <div className="product-image-wrap skeleton" style={{ aspectRatio: '3/4' }} />
+                  <div className="product-info">
+                    <div className="skeleton" style={{ height: 18, marginBottom: 8, width: '60%' }} />
+                    <div className="skeleton" style={{ height: 36, marginTop: 16 }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : displayItems.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state-icon">◆</div>
+              <div className="empty-state-text">New pieces coming soon</div>
+            </div>
+          ) : (
+            <div className="products-grid">
+              {displayItems.map(p => (
+                <ProductCard key={p.id} product={p} />
+              ))}
+            </div>
+          )}
 
           <div style={{ textAlign: 'center', marginTop: 56 }} className="animate-in">
             <Link to="/jewelry" className="btn-outline">View All Jewelry</Link>
@@ -496,40 +485,3 @@ export default function HomePage() {
   )
 }
 
-/* ── Local product card (for static catalog) ── */
-function ProductCardLocal({ item }) {
-  const handleOrder = () => {
-    window.open(ORDER_FORM_URL, '_blank', 'noopener,noreferrer')
-  }
-
-  return (
-    <div className="product-card animate-in">
-      <div className="product-image-wrap">
-        {item.img ? (
-          <img src={item.img} alt={item.name} loading="lazy" />
-        ) : (
-          <div className="product-placeholder">
-            <svg viewBox="0 0 48 48" fill="none" className="product-placeholder-icon">
-              <path d="M24 8L32 18H16L24 8Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-              <path d="M16 18L20 38H28L32 18" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round"/>
-            </svg>
-          </div>
-        )}
-        <div className="product-cat-badge">{item.category}</div>
-        <div className="product-price-badge">₱{Number(item.price).toLocaleString()}</div>
-        <div className="product-hover-overlay" />
-        <button className="product-order-cta" onClick={handleOrder} aria-label={`Order ${item.name}`}>
-          Order Now
-        </button>
-      </div>
-      <div className="product-info">
-        <div className="product-name">{item.name}</div>
-        {item.desc && <div className="product-desc">{item.desc}</div>}
-        <div className="product-footer">
-          <div className="product-price">₱{Number(item.price).toLocaleString()}</div>
-          <button className="product-view-link" onClick={handleOrder}>View Details</button>
-        </div>
-      </div>
-    </div>
-  )
-}

@@ -31,6 +31,7 @@ export const api = {
   getProducts: async (params = {}) => {
     let query = supabase.from('products').select('*')
     if (params.category) query = query.eq('category', params.category)
+    if (params.subcategory) query = query.eq('subcategory', params.subcategory)
     query = query.order('created_at', { ascending: false })
     const { data, error } = await query
     if (error) throw error
