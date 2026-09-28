@@ -153,30 +153,23 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
 .brand-block {
   display: flex;
   align-items: center;
-  gap: 10px;
   flex-shrink: 0;
   text-decoration: none;
 }
-.brand-emblem-img {
+.logo-img {
   height: 48px;
-  width: 48px;
-  object-fit: contain;
-  flex-shrink: 0;
-  filter: drop-shadow(0 0 6px rgba(201,168,76,0.4));
-  transition: filter var(--t-fast);
-}
-.brand-block:hover .brand-emblem-img {
-  filter: drop-shadow(0 0 10px rgba(201,168,76,0.7));
-}
-.brand-logo-img {
-  height: 38px;
   width: auto;
   object-fit: contain;
-  filter: drop-shadow(0 0 4px rgba(201,168,76,0.3));
-  transition: filter var(--t-fast);
+  display: block;
+  filter: drop-shadow(0 0 6px rgba(201,168,76,0.25));
+  transition: filter var(--t-fast), opacity var(--t-fast);
 }
-.brand-block:hover .brand-logo-img {
-  filter: drop-shadow(0 0 8px rgba(201,168,76,0.6));
+.brand-block:hover .logo-img {
+  filter: drop-shadow(0 0 10px rgba(201,168,76,0.55));
+  opacity: 0.92;
+}
+@media (max-width: 768px) {
+  .logo-img { height: 36px; }
 }
 
 /* Desktop nav */
