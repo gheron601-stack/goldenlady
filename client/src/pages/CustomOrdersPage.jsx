@@ -28,6 +28,16 @@ export default function CustomOrdersPage() {
             Your vision, our craft. We create bespoke jewelry tailored to your story,
             made with the finest materials and attention to detail.
           </p>
+          <div style={{ marginTop: 24 }} className="animate-in">
+            <a
+              href={ORDER_FORM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn-primary"
+            >
+              Fill Out Custom Order Form
+            </a>
+          </div>
         </div>
       </div>
 

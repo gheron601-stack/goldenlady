@@ -28,4 +28,4 @@ export function getImageUrl(path) {
 }
 
 export const ORDER_FORM_URL =
-  'https://docs.google.com/forms/d/e/1FAIpQLSd8sju-h1h5GT9OJmm7v8Z4zIipC4quc0-f74oed1rTGRWBQw/viewform?usp=publish-editor'
+  'https://forms.gle/iXrCM1Jpr2SVCJYC6'
