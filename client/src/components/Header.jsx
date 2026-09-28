@@ -33,16 +33,11 @@ export default function Header() {
         <div className="header-inner">
           {/* Brand lockup */}
           <Link to="/" className="brand-block" onClick={() => setMobileOpen(false)}>
-            <img
-              src="/gl-emblem.png"
-              alt="Golden Lady emblem"
-              className="brand-emblem-img"
-            />
-            <img
-              src="/gl-logo.png"
-              alt="Golden Lady Jewelry Shop"
-              className="brand-logo-img"
-            />
+            <div className="brand-badge">GL</div>
+            <div className="brand-text">
+              <span className="brand-name">Golden Lady</span>
+              <span className="brand-sub">Fine Jewelry &amp; Accessories</span>
+            </div>
           </Link>
 
           {/* Desktop nav */}
