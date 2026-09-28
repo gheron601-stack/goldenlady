@@ -25,6 +25,18 @@ const NAV = [
       </svg>
     )
   },
+  {
+    path: '/orders',
+    label: 'Orders',
+    exact: false,
+    icon: (
+      <svg viewBox="0 0 16 16" fill="none">
+        <path d="M2 2h12v2H2zM2 7h12v2H2zM2 12h7v2H2z" fill="currentColor" opacity="0.8"/>
+        <circle cx="12" cy="13" r="2.5" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M11 13l.8.8 1.5-1.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
+      </svg>
+    )
+  },
 ]
 
 export default function AdminLayout({ children, title }) {
