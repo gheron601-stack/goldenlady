@@ -58,7 +58,7 @@ export default function Header() {
 
           {/* CTA */}
           <a
-            href="https://wa.me/639954889011"
+            href="https://api.whatsapp.com/send?phone=639954889011"
             target="_blank"
             rel="noopener noreferrer"
             className="header-cta-btn"

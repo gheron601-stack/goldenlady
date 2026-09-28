@@ -50,7 +50,7 @@ function BackToTop() {
 function WhatsAppFloat() {
   return (
     <a
-      href="https://wa.me/639954889011"
+      href="https://api.whatsapp.com/send?phone=639954889011"
       className="whatsapp-float"
       target="_blank"
       rel="noopener noreferrer"
