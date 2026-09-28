@@ -153,42 +153,30 @@ button { cursor: pointer; font-family: inherit; border: none; background: none; 
 .brand-block {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-shrink: 0;
   text-decoration: none;
 }
-.brand-badge {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: 1.5px solid var(--gold);
-  background: rgba(201,168,76,0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--gold);
+.brand-emblem-img {
+  height: 48px;
+  width: 48px;
+  object-fit: contain;
   flex-shrink: 0;
+  filter: drop-shadow(0 0 6px rgba(201,168,76,0.4));
+  transition: filter var(--t-fast);
 }
-.brand-text { display: flex; flex-direction: column; line-height: 1; }
-.brand-name {
-  font-family: var(--font-display);
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: 0.24em;
-  color: var(--gold);
-  text-transform: uppercase;
+.brand-block:hover .brand-emblem-img {
+  filter: drop-shadow(0 0 10px rgba(201,168,76,0.7));
 }
-.brand-sub {
-  font-family: var(--font-sans);
-  font-size: 9px;
-  font-weight: 400;
-  letter-spacing: 0.38em;
-  text-transform: uppercase;
-  color: rgba(201,168,76,0.6);
-  margin-top: 3px;
+.brand-logo-img {
+  height: 38px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 0 4px rgba(201,168,76,0.3));
+  transition: filter var(--t-fast);
+}
+.brand-block:hover .brand-logo-img {
+  filter: drop-shadow(0 0 8px rgba(201,168,76,0.6));
 }
 
 /* Desktop nav */
